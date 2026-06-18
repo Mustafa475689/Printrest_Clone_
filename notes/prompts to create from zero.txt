@@ -1,0 +1,24 @@
+/////  Prompt one ////
+I am making a printrest clone with express-generator , node.js , mongodb, mongoose.js and ejs as view engine, 
+can you tell me all number of db models I need to create and their purpose keep it very short.
+//////
+
+	
+////// prompt two //////
+please write the code of these models too
+
+User
+Post (Pin)
+Board
+Bookmark
+like
+comment 
+///////////
+
+///// prompt three ///
+now setup passport 
+////////////////////
+
+
+
+
