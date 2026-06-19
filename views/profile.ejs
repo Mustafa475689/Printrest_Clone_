@@ -16,6 +16,20 @@
       transform: scale(1.03);
       transition: 0.3s ease;
     }
+
+    .feed-link:hover{
+  opacity: 0.8;
+}
+
+    .profile-pic{
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-pic:hover{
+  transform: scale(1.1);
+}
+
   </style>
 
   <!-- Bootstrap -->
@@ -25,23 +39,67 @@
 <body class="bg-light">
 
   <!-- NAVBAR -->
-  <nav class="navbar navbar-light bg-white shadow-sm px-4">
+<nav class="navbar navbar-light bg-white shadow-sm px-4">
 
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/profile">
+  <!-- Logo -->
+  <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Pinterest-logo.png"
+         width="30"
+         height="30">
 
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Pinterest-logo.png" width="30" height="30">
+    <span class="fw-bold text-danger">Printrest</span>
+  </a>
 
-      <span class="fw-bold text-danger">Printrest</span>
+  <!-- Feed + Search -->
+  <div class="d-flex align-items-center gap-3 flex-grow-1 mx-4">
 
+    <a href="/"
+       class="text-danger fw-bold text-decoration-none">
+      Feed
     </a>
 
-    <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    <form action="/search" method="GET" class="flex-grow-1">
+      <input
+        type="text"
+        name="query"
+        class="form-control rounded-pill"
+        placeholder="Search for ideas..."
+      >
+    </form>
 
-  </nav>
+  </div>
+
+  <!-- Right Side -->
+  <div class="d-flex align-items-center gap-3">
+
+    <!-- Profile Link -->
+    <a href="/profile"
+       class="text-dark fw-bold text-decoration-none profile-pic">
+    </a>
+
+    <!-- DP -->
+    <a href="/profile">
+      <img
+        src="/images/uploads/<%= user.dp %>"
+        class="profile-pic rounded-circle border"
+        width="40"
+        height="40"
+        style="object-fit: cover;"
+      >
+    </a>
+
+    <!-- Logout -->
+    <a href="/logout"
+       class="btn btn-outline-danger btn-sm">
+      Logout
+    </a>
+
+  </div>
+
+</nav>
 
   <div class="container mt-4">
 
-    <!-- USER INFO -->
     <!-- USER INFO + DP + UPLOAD + POST FORM IN ONE LINE -->
     <div class="card shadow-sm mb-3">
       <div class="card-body">

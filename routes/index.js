@@ -6,12 +6,50 @@ const passport = require("passport");
 // require models
 const userModel = require('../models/user');
 const postModel = require('../models/post');
+const likeModel = require("../models/like");
 const upload = require("../config/multer");
 
 /* Home Page */
-router.get('/', function (req, res) {
-  res.render('index', { title: 'Express' });
+router.get('/', async function (req, res) {
+
+  const posts = await postModel
+    .find()
+    .populate("user")
+    .sort({ createdAt: -1 });
+
+  // add like count to each post
+const postsWithLikes = await Promise.all(
+  posts.map(async (post) => {
+
+    const likeCount = await likeModel.countDocuments({
+      post: post._id
+    });
+
+    let liked = false;
+
+    if (req.user) {
+      const existingLike = await likeModel.findOne({
+        post: post._id,
+        user: req.user._id
+      });
+
+      liked = !!existingLike;
+    }
+
+    return {
+      ...post.toObject(),
+      likeCount,
+      liked
+    };
+  })
+);
+  res.render('index', {
+    title: "Printrest",
+    posts: postsWithLikes,
+    user: req.user
+  });
 });
+//...
 
 /* Register */
 router.post("/register", async (req, res) => {
@@ -88,7 +126,7 @@ router.post("/login", function (req, res, next) {
       if (err) return next(err);
 
       req.flash("success", "Login successful!");
-      return res.redirect("/profile");
+      return res.redirect("/");
     });
 
   })(req, res, next);
@@ -161,6 +199,30 @@ try {
 });
 //
 
+// Create Post route for user Like the post  //
+router.post("/like/:postId", isLoggedIn, async (req, res) => {
+
+  const postId = req.params.postId;
+  const userId = req.user._id;
+
+  const existingLike = await likeModel.findOne({
+    post: postId,
+    user: userId
+  });
+
+  if (existingLike) {
+    await likeModel.deleteOne({ _id: existingLike._id });
+  } else {
+    await likeModel.create({
+      post: postId,
+      user: userId
+    });
+  }
+
+  // simple redirect instead of JSON
+  res.redirect("back");
+});
+//.....
 // * Delete Post route *//
 router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
   try {
@@ -235,17 +297,83 @@ router.get("/search", async function(req, res) {
 
   const query = req.query.query || "";
 
-  const posts = await postModel.find({
-    title: { $regex: query, $options: "i" }
-  }).populate("user");
+  let posts = await postModel
+    .find({
+      title: { $regex: query, $options: "i" }
+    })
+    .populate("user");
+
+  const likeModel = require("../models/like");
+
+  posts = await Promise.all(
+    posts.map(async (post) => {
+      const likeCount = await likeModel.countDocuments({ post: post._id });
+
+      return {
+        ...post.toObject(),
+        likeCount
+      };
+    })
+  );
 
   res.render("index", {
     title: "printrest",
     posts,
-    query
+    query,
+    user: req.user
   });
-//
 });
 //.. 
+
+// ** Post Route * // To open post in seperatly ....//
+router.get("/post/:id", async function(req, res) {
+
+  const post = await postModel
+    .findById(req.params.id)
+    .populate("user");
+
+  const likeModel = require("../models/like");
+
+  // count likes
+  const likeCount = await likeModel.countDocuments({
+    post: post._id
+  });
+
+  // check if user liked
+  let liked = false;
+
+  if (req.user) {
+    const existingLike = await likeModel.findOne({
+      post: post._id,
+      user: req.user._id
+    });
+
+    liked = !!existingLike;
+  }
+
+  res.render("post", {
+    post,
+    likeCount,
+    liked,
+    user: req.user
+  });
+
+});
+//...
+
+// * Get Route for  open User profile who posted the image : * //
+router.get("/user/:id", isLoggedIn, async function (req, res) {
+
+  const user = await userModel
+    .findById(req.params.id)
+    .populate("posts");
+
+  if (!user) return res.send("User not found");
+
+  res.render("profile", { user });
+
+});
+//....
+
 
 module.exports = router;
