@@ -115,41 +115,68 @@
                   <%= post.description %>
                 </p>
 
-                <!-- LIKE BUTTON -->
-<form action="/like/<%= post._id %>" method="POST">
+                <!-- LIKE and Save -->
+<div class="d-flex align-items-center gap-2">
 
-  <% if(user){ %>
+  <!-- LIKE BUTTON -->
+  <form action="/like/<%= post._id %>" method="POST" class="m-0">
 
-    <% if(post.liked){ %>
+    <% if(user){ %>
 
-     <button
-  class="btn btn-sm btn-outline-danger like-btn"
-  data-postid="<%= post._id %>"
->
-  ❤️ Like
-</button>
+      <% if(post.liked){ %>
+        <button class="btn btn-sm btn-outline-danger">
+          ❤️ Like
+        </button>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline-secondary">
+          🤍 Like
+        </button>
+      <% } %>
+
     <% } else { %>
 
-      <button class="btn btn-sm btn-outline-secondary">
+      <a href="/login" class="btn btn-sm btn-outline-secondary">
         🤍 Like
-      </button>
+      </a>
 
     <% } %>
 
-  <% } else { %>
+  </form>
 
-    <a href="/login" class="btn btn-sm btn-outline-secondary">
-      🤍 Like
-    </a>
-
-  <% } %>
-
-  <small class="ms-2 text-muted">
+  <!-- LIKE COUNT -->
+  <small class="text-muted">
     <%= post.likeCount || 0 %> likes
   </small>
 
-</form>
-<!-- end of like button -->
+  <!-- SAVE BUTTON (after like count) -->
+  <form action="/save/<%= post._id %>" method="POST" class="m-0">
+
+    <% if(user){ %>
+
+      <% let isSaved = user.savedPosts?.some(id => id.toString() === post._id.toString()); %>
+
+      <% if(isSaved){ %>
+        <button class="btn btn-sm btn-warning">
+          ⭐ Saved
+        </button>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline-warning">
+          ☆ Save
+        </button>
+      <% } %>
+
+    <% } else { %>
+
+      <a href="/login" class="btn btn-sm btn-outline-warning">
+        ☆ Save
+      </a>
+
+    <% } %>
+
+  </form>
+
+</div>
+<!-- End of save button -->
 
                 <hr>
 

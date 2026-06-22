@@ -18,31 +18,31 @@ router.get('/', async function (req, res) {
     .sort({ createdAt: -1 });
 
   // add like count to each post
-const postsWithLikes = await Promise.all(
-  posts.map(async (post) => {
+  const postsWithLikes = await Promise.all(
+    posts.map(async (post) => {
 
-    const likeCount = await likeModel.countDocuments({
-      post: post._id
-    });
-
-    let liked = false;
-
-    if (req.user) {
-      const existingLike = await likeModel.findOne({
-        post: post._id,
-        user: req.user._id
+      const likeCount = await likeModel.countDocuments({
+        post: post._id
       });
 
-      liked = !!existingLike;
-    }
+      let liked = false;
 
-    return {
-      ...post.toObject(),
-      likeCount,
-      liked
-    };
-  })
-);
+      if (req.user) {
+        const existingLike = await likeModel.findOne({
+          post: post._id,
+          user: req.user._id
+        });
+
+        liked = !!existingLike;
+      }
+
+      return {
+        ...post.toObject(),
+        likeCount,
+        liked
+      };
+    })
+  );
   res.render('index', {
     title: "Printrest",
     posts: postsWithLikes,
@@ -176,7 +176,7 @@ router.get("/login", function (req, res) {
 
 // Create post route //
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
-try {
+  try {
 
     const post = await postModel.create({
       image: req.file.filename,   // uploaded file
@@ -223,6 +223,7 @@ router.post("/like/:postId", isLoggedIn, async (req, res) => {
   res.redirect("back");
 });
 //.....
+
 // * Delete Post route *//
 router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
   try {
@@ -245,6 +246,31 @@ router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
   }
 });
 //.. 
+
+// * Save the post route *//
+router.post("/save/:postId", isLoggedIn, async (req, res) => {
+
+  const user = await userModel.findById(req.user._id);
+
+  const postId = req.params.postId;
+
+  const alreadySaved = user.savedPosts.includes(postId);
+
+  if (alreadySaved) {
+
+    user.savedPosts.pull(postId);
+
+  } else {
+
+    user.savedPosts.push(postId);
+
+  }
+
+  await user.save();
+
+  res.redirect("back");
+});
+//...
 
 // * Upload Profile Photo route *//
 router.post("/upload-dp", isLoggedIn, upload.single("dp"), async function (req, res) {
@@ -283,17 +309,51 @@ function isLoggedIn(req, res, next) {
 /* Profile */
 router.get("/profile", isLoggedIn, async function (req, res) {
 
+  let user = await userModel
+    .findById(req.user._id)
+    .populate("posts")
+    .populate("savedPosts");
+
+  const postsWithStats = await Promise.all(
+    user.posts.map(async (post) => {
+
+      const likeCount = await likeModel.countDocuments({
+        post: post._id
+      });
+
+      const saveCount = await userModel.countDocuments({
+        savedPosts: post._id
+      });
+
+      return {
+        ...post.toObject(),
+        likeCount,
+        saveCount
+      };
+    })
+  );
+
+  user = user.toObject();
+  user.posts = postsWithStats;
+
+  res.render("profile", { user });
+});
+// ...
+
+router.get("/saved-posts", isLoggedIn, async function(req, res) {
+
   const user = await userModel
     .findById(req.user._id)
-    .populate("posts");
+    .populate("savedPosts");
 
-  res.render("profile", {
-    user,
+  res.render("saved-posts", {
+    user
   });
+
 });
 
 /* Search Route */
-router.get("/search", async function(req, res) {
+router.get("/search", async function (req, res) {
 
   const query = req.query.query || "";
 
@@ -326,7 +386,7 @@ router.get("/search", async function(req, res) {
 //.. 
 
 // ** Post Route * // To open post in seperatly ....//
-router.get("/post/:id", async function(req, res) {
+router.get("/post/:id", async function (req, res) {
 
   const post = await postModel
     .findById(req.params.id)
@@ -339,8 +399,9 @@ router.get("/post/:id", async function(req, res) {
     post: post._id
   });
 
-  // check if user liked
+  // check if user liked or saved
   let liked = false;
+  let saved = false;
 
   if (req.user) {
     const existingLike = await likeModel.findOne({
@@ -349,15 +410,19 @@ router.get("/post/:id", async function(req, res) {
     });
 
     liked = !!existingLike;
+
+    const currentUser = await userModel.findById(req.user._id);
+
+    saved = currentUser.savedPosts.includes(post._id.toString());
   }
 
   res.render("post", {
     post,
     likeCount,
     liked,
+    saved,
     user: req.user
   });
-
 });
 //...
 

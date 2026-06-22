@@ -73,25 +73,35 @@
 
             <hr>
 
-            <div class="d-flex gap-2">
+           <div class="d-flex align-items-center gap-2">
 
-              <form action="/like/<%= post._id %>" method="POST">
+  <form action="/like/<%= post._id %>" method="POST">
 
-                <button type="submit" class="btn <%= liked ? 'btn-danger' : 'btn-outline-danger' %>">
-                  <%= liked ? "❤️ Liked" : "🤍 Like" %>
-                </button>
+    <button type="submit"
+      class="btn <%= liked ? 'btn-danger' : 'btn-outline-danger' %>">
 
-              </form>
+      <%= liked ? "❤️ Liked" : "🤍 Like" %>
 
-              <p class="text-muted mt-2">
-                <%= likeCount %> likes
-              </p>
+    </button>
 
-              <button class="btn btn-outline-secondary">
-                📌 Save
-              </button>
+  </form>
 
-            </div>
+  <form action="/save/<%= post._id %>" method="POST">
+
+    <button type="submit"
+      class="btn <%= saved ? 'btn-warning' : 'btn-outline-secondary' %>">
+
+      <%= saved ? '⭐ Saved' : '☆  Save' %>
+
+    </button>
+
+  </form>
+
+</div>
+
+<p class="text-muted mt-2 mb-0">
+  ❤️ <%= likeCount %> likes
+</p>
 
           </div>
 
