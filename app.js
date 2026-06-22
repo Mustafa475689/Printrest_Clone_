@@ -1,6 +1,7 @@
 var createError = require('http-errors');
 var express = require('express');
 // require("./config/mongoose-connection");
+require("dotenv").config();
 const connectDB = require("./config/db");
 connectDB();
 
