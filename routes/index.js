@@ -11,43 +11,47 @@ const upload = require("../config/multer");
 
 /* Home Page */
 router.get('/', async function (req, res) {
+  try {
+    const posts = await postModel.find()
+      .populate("user")
+      .sort({ createdAt: -1 });
 
-  const posts = await postModel
-    .find()
-    .populate("user")
-    .sort({ createdAt: -1 });
+    const postsWithLikes = await Promise.all(
+      posts.map(async (post) => {
 
-  // add like count to each post
-  const postsWithLikes = await Promise.all(
-    posts.map(async (post) => {
-
-      const likeCount = await likeModel.countDocuments({
-        post: post._id
-      });
-
-      let liked = false;
-
-      if (req.user) {
-        const existingLike = await likeModel.findOne({
-          post: post._id,
-          user: req.user._id
+        const likeCount = await likeModel.countDocuments({
+          post: post._id
         });
 
-        liked = !!existingLike;
-      }
+        let liked = false;
 
-      return {
-        ...post.toObject(),
-        likeCount,
-        liked
-      };
-    })
-  );
-  res.render('index', {
-    title: "Printrest",
-    posts: postsWithLikes,
-    user: req.user
-  });
+        if (req.user) {
+          const existingLike = await likeModel.findOne({
+            post: post._id,
+            user: req.user._id
+          });
+
+          liked = !!existingLike;
+        }
+
+        return {
+          ...post.toObject(),
+          likeCount,
+          liked
+        };
+      })
+    );
+
+    res.render('index', {
+      title: "Printrest",
+      posts: postsWithLikes,
+      user: req.user
+    });
+
+  } catch (err) {
+    console.log("HOME ROUTE ERROR:", err);
+    res.status(500).send("Server Error");
+  }
 });
 //...
 
@@ -387,42 +391,46 @@ router.get("/search", async function (req, res) {
 
 // ** Post Route * // To open post in seperatly ....//
 router.get("/post/:id", async function (req, res) {
+  try {
 
-  const post = await postModel
-    .findById(req.params.id)
-    .populate("user");
+    const post = await postModel.findById(req.params.id).populate("user");
 
-  const likeModel = require("../models/like");
+    if (!post) {
+      return res.status(404).send("Post not found");
+    }
 
-  // count likes
-  const likeCount = await likeModel.countDocuments({
-    post: post._id
-  });
-
-  // check if user liked or saved
-  let liked = false;
-  let saved = false;
-
-  if (req.user) {
-    const existingLike = await likeModel.findOne({
-      post: post._id,
-      user: req.user._id
+    const likeCount = await likeModel.countDocuments({
+      post: post._id
     });
 
-    liked = !!existingLike;
+    let liked = false;
+    let saved = false;
 
-    const currentUser = await userModel.findById(req.user._id);
+    if (req.user) {
+      const existingLike = await likeModel.findOne({
+        post: post._id,
+        user: req.user._id
+      });
 
-    saved = currentUser.savedPosts.includes(post._id.toString());
+      liked = !!existingLike;
+
+      const currentUser = await userModel.findById(req.user._id);
+
+      saved = currentUser?.savedPosts?.includes(post._id.toString()) || false;
+    }
+
+    res.render("post", {
+      post,
+      likeCount,
+      liked,
+      saved,
+      user: req.user
+    });
+
+  } catch (err) {
+    console.log("POST ROUTE ERROR:", err);
+    res.status(500).send("Server Error");
   }
-
-  res.render("post", {
-    post,
-    likeCount,
-    liked,
-    saved,
-    user: req.user
-  });
 });
 //...
 
