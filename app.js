@@ -13,7 +13,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
-const userModel = require("./models/User");
+const userModel = require("./models/user");
 // console.log("userModel =", userModel);
 
 var indexRouter = require('./routes/index');
