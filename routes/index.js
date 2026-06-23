@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const connectDB = require('../config/db'); // Adjust the path if your db.js is in a different folder
+
 const passport = require("passport");
 
 // require models

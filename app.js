@@ -3,7 +3,10 @@ var express = require('express');
 // require("./config/mongoose-connection");
 require("dotenv").config();
 const connectDB = require("./config/db");
-connectDB();
+
+(async () => {
+  await connectDB();
+})();
 
 var path = require('path');
 var cookieParser = require('cookie-parser');
