@@ -60,11 +60,11 @@
 
         <a href="/profile">
 
-          <img src="<%= user.dp ? '/images/uploads/' + user.dp : 'https://via.placeholder.com/40' %>"
+          <img src="<%= user.dp ? user.dp : 'https://via.placeholder.com/40' %>"
             class="profile-pic rounded-circle border" width="40" height="40" style="object-fit: cover">
 
         </a>
-
+        
         <a href="/logout" class="btn btn-outline-danger btn-sm">
           Logout
         </a>
@@ -103,7 +103,7 @@
 
             <div class="card border-0 shadow-sm post-card">
 
-              <img src="/images/uploads/<%= post.image %>" class="card-img-top">
+              <img src="<%= post.image %>" class="card-img-top">
 
               <div class="card-body">
 
@@ -184,7 +184,7 @@
 
                   <a href="/user/<%= post.user._id %>">
                     <img
-                      src="<%= post.user.dp ? '/images/uploads/' + post.user.dp : 'https://via.placeholder.com/35' %>"
+                      src="<%= post.user.dp ?   post.user.dp : 'https://via.placeholder.com/35' %>"
                       class="rounded-circle border" width="30" height="30" style="object-fit: cover;">
                   </a>
 
@@ -266,4 +266,4 @@
       </script>
 </body>
 
-</html>
+</html> 

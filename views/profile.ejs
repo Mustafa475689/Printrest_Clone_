@@ -69,7 +69,7 @@
 
       <!-- DP -->
       <a href="/profile">
-        <img src="/images/uploads/<%= user.dp %>" class="profile-pic rounded-circle border" width="40" height="40"
+        <img src="<%= user.dp %>" class="profile-pic rounded-circle border" width="40" height="40"
           style="object-fit: cover;">
       </a>
 
@@ -92,7 +92,7 @@
 
           <!-- DP -->
           <div class="text-center">
-            <img src="/images/uploads/<%= user.dp %>" class="rounded-circle border" width="100" height="100"
+            <img src="<%= user.dp %>" class="rounded-circle border" width="100" height="100"
               style="object-fit: cover;">
 
             <!-- UPLOAD DP -->
@@ -153,7 +153,6 @@
 
 
     <!-- POSTS SECTION -->
-    <!-- POSTS SECTION -->
     <h4 class="mb-3">Your Posts</h4>
 
     <% if (user.posts.length> 0) { %>
@@ -167,7 +166,7 @@
             <div class="card post-card shadow-sm border-0">
 
               <!-- IMAGE -->
-              <img src="/images/uploads/<%= post.image %>" class="card-img-top">
+              <img src="<%= post.image %>" class="card-img-top">
 
               <div class="card-body">
 
