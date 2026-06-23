@@ -201,7 +201,7 @@ router.post("/createpost", isLoggedIn, upload.single("image"), async function (r
 
   } catch (err) {
 
-    console.log("CREATE POST ERROR:", err);
+    console.log(err);
 
     res.status(500).send(err.message);
   }
