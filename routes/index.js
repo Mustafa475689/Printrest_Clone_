@@ -178,28 +178,33 @@ router.get("/login", function (req, res) {
   res.render("login");
 });
 
-// Create post route //
+// Create posts route //
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
   try {
 
+    console.log("FILE:", req.file);
+
     const post = await postModel.create({
-      image: req.file.path,   // uploaded file
+      image: req.file.path,
       title: req.body.title,
       description: req.body.description,
       user: req.user._id
     });
 
-    // user ke posts array me add karo
     const user = await userModel.findById(req.user._id);
+
     user.posts.push(post._id);
+
     await user.save();
 
     res.redirect("/profile");
 
   } catch (err) {
-    res.send(err.message);
-  }
 
+    console.log("CREATE POST ERROR:", err);
+
+    res.status(500).send(err.message);
+  }
 });
 //
 
