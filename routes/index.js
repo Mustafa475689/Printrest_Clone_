@@ -9,47 +9,35 @@ const postModel = require('../models/post');
 const likeModel = require("../models/like");
 const upload = require("../config/multer");
 
-/* Home Page */
+/* Home Page */ 
 router.get('/', async function (req, res) {
   try {
-    const posts = await postModel.find()
-      .populate("user")
-      .sort({ createdAt: -1 });
+    await connectDB(); // Ensure the DB is connected
 
-    const postsWithLikes = await Promise.all(
-      posts.map(async (post) => {
-
-        const likeCount = await likeModel.countDocuments({
-          post: post._id
-        });
-
-        let liked = false;
-
-        if (req.user) {
-          const existingLike = await likeModel.findOne({
-            post: post._id,
-            user: req.user._id
-          });
-
-          liked = !!existingLike;
+    const posts = await postModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "post",
+          as: "likes"
         }
+      },
+      {
+        $addFields: {
+          likeCount: { $size: "$likes" },
+          liked: req.user ? { $in: [req.user._id, "$likes.user"] } : false
+        }
+      }
+    ]);
 
-        return {
-          ...post.toObject(),
-          likeCount,
-          liked
-        };
-      })
-    );
+    // Populate the user field manually since aggregate doesn't do it automatically
+    await postModel.populate(posts, { path: "user" });
 
-    res.render('index', {
-      title: "Printrest",
-      posts: postsWithLikes,
-      user: req.user
-    });
-
+    res.render('index', { title: "Printrest", posts, user: req.user });
   } catch (err) {
-    console.log("HOME ROUTE ERROR:", err);
+    console.error(err);
     res.status(500).send("Server Error");
   }
 });
@@ -366,8 +354,6 @@ router.get("/search", async function (req, res) {
       title: { $regex: query, $options: "i" }
     })
     .populate("user");
-
-  const likeModel = require("../models/like");
 
   posts = await Promise.all(
     posts.map(async (post) => {
