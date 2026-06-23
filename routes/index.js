@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+const connectDB = require('../config/db'); // Adjust the path if your db.js is in a different folder
 const passport = require("passport");
 
 // require models
@@ -9,35 +9,47 @@ const postModel = require('../models/post');
 const likeModel = require("../models/like");
 const upload = require("../config/multer");
 
-/* Home Page */ 
+/* Home Page */
 router.get('/', async function (req, res) {
   try {
-    await connectDB(); // Ensure the DB is connected
+    const posts = await postModel.find()
+      .populate("user")
+      .sort({ createdAt: -1 });
 
-    const posts = await postModel.aggregate([
-      { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "likes",
-          localField: "_id",
-          foreignField: "post",
-          as: "likes"
+    const postsWithLikes = await Promise.all(
+      posts.map(async (post) => {
+
+        const likeCount = await likeModel.countDocuments({
+          post: post._id
+        });
+
+        let liked = false;
+
+        if (req.user) {
+          const existingLike = await likeModel.findOne({
+            post: post._id,
+            user: req.user._id
+          });
+
+          liked = !!existingLike;
         }
-      },
-      {
-        $addFields: {
-          likeCount: { $size: "$likes" },
-          liked: req.user ? { $in: [req.user._id, "$likes.user"] } : false
-        }
-      }
-    ]);
 
-    // Populate the user field manually since aggregate doesn't do it automatically
-    await postModel.populate(posts, { path: "user" });
+        return {
+          ...post.toObject(),
+          likeCount,
+          liked
+        };
+      })
+    );
 
-    res.render('index', { title: "Printrest", posts, user: req.user });
+    res.render('index', {
+      title: "Printrest",
+      posts: postsWithLikes,
+      user: req.user
+    });
+
   } catch (err) {
-    console.error(err);
+    console.log("HOME ROUTE ERROR:", err);
     res.status(500).send("Server Error");
   }
 });
@@ -354,6 +366,8 @@ router.get("/search", async function (req, res) {
       title: { $regex: query, $options: "i" }
     })
     .populate("user");
+
+  const likeModel = require("../models/like");
 
   posts = await Promise.all(
     posts.map(async (post) => {
