@@ -181,11 +181,14 @@ router.get("/login", function (req, res) {
 // Create posts route //
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
 
-  console.log("========== CREATE POST ==========");
-  console.log("BODY:", req.body);
-  console.log("FILE:", req.file);
-
   try {
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
+    if (!req.file) {
+      return res.status(400).send("No file uploaded");
+    }
 
     const post = await postModel.create({
       image: req.file.path,
@@ -194,14 +197,11 @@ router.post("/createpost", isLoggedIn, upload.single("image"), async function (r
       user: req.user._id
     });
 
-    console.log("POST CREATED:", post);
-
     res.redirect("/profile");
 
   } catch (err) {
 
-    console.error("CREATE POST ERROR:");
-    console.error(err);
+    console.error("ERROR:", err);
 
     res.status(500).send(err.message);
   }
