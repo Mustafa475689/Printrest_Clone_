@@ -180,10 +180,12 @@ router.get("/login", function (req, res) {
 
 // Create posts route //
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
-  try {
 
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+  console.log("========== CREATE POST ==========");
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
+
+  try {
 
     const post = await postModel.create({
       image: req.file.path,
@@ -192,11 +194,7 @@ router.post("/createpost", isLoggedIn, upload.single("image"), async function (r
       user: req.user._id
     });
 
-    const user = await userModel.findById(req.user._id);
-
-    user.posts.push(post._id);
-
-    await user.save();
+    console.log("POST CREATED:", post);
 
     res.redirect("/profile");
 
