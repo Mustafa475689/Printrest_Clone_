@@ -182,6 +182,7 @@ router.get("/login", function (req, res) {
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
   try {
 
+    console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
     const post = await postModel.create({
@@ -201,7 +202,8 @@ router.post("/createpost", isLoggedIn, upload.single("image"), async function (r
 
   } catch (err) {
 
-    console.log(err);
+    console.error("CREATE POST ERROR:");
+    console.error(err);
 
     res.status(500).send(err.message);
   }
