@@ -279,6 +279,17 @@ router.post("/save/:postId", isLoggedIn, async (req, res) => {
 });
 //...
 
+// * Unsave route * //
+router.post("/unsave/:id", isLoggedIn, async (req, res) => {
+
+  await userModel.findByIdAndUpdate(req.user._id, {
+    $pull: { savedPosts: req.params.id }
+  });
+
+  res.redirect("/saved-posts");
+});
+// ...
+
 // * Upload Profile Photo route *//
 router.post("/upload-dp", isLoggedIn, upload.single("dp"), async function (req, res) {
   try {
