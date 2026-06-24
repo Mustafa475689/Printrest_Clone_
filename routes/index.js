@@ -231,7 +231,7 @@ router.post("/like/:postId", isLoggedIn, async (req, res) => {
 
 
 // * Delete Post route *//
-/*router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
+router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
   try {
     const postId = req.params.id;
 
@@ -250,7 +250,7 @@ router.post("/like/:postId", isLoggedIn, async (req, res) => {
     req.flash("error", err.message);
     res.redirect("/profile");
   }
-}); */
+}); 
 //.. 
 
 
