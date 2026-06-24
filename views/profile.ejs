@@ -81,7 +81,7 @@
     </div>
 
   </nav>
-
+<!-- end of navbar -->
   <div class="container mt-4">
 
     <!-- USER INFO + DP + UPLOAD + POST FORM IN ONE LINE -->
@@ -92,8 +92,7 @@
 
           <!-- DP -->
           <div class="text-center">
-            <img src="<%= user.dp %>" class="rounded-circle border" width="100" height="100"
-              style="object-fit: cover;">
+            <img src="<%= user.dp %>" class="rounded-circle border" width="100" height="100" style="object-fit: cover;">
 
             <!-- UPLOAD DP -->
             <form action="/upload-dp" method="POST" enctype="multipart/form-data" class="mt-2">
@@ -175,7 +174,7 @@
                   <%= post.title %>
                 </h6>
 
-                <p class="text-muted small mb-2">
+                <p class="text-muted small mb-2"> 
                   <%= post.description %>
                 </p>
 
@@ -185,9 +184,19 @@
                   <!-- LIKE BUTTON -->
                   <form action="/like/<%= post._id %>" method="POST" class="m-0">
 
-                    <button class="btn btn-sm btn-outline-danger">
-                      ❤️ Like
-                    </button>
+                    <% if(post.liked){ %>
+
+                      <button class="btn btn-sm btn-outline-danger">
+                        ❤️ Like
+                      </button>
+
+                      <% } else { %>
+
+                        <button class="btn btn-sm btn-outline-secondary">
+                          🤍 Like
+                        </button>
+
+                        <% } %>
 
                   </form>
 
@@ -200,17 +209,15 @@
                   <!-- SAVE BUTTON -->
                   <form action="/save/<%= post._id %>" method="POST" class="m-0 ms-auto">
 
-                    <% let isSaved=user.savedPosts?.some(id=> id.toString() === post._id.toString()); %>
-
-                      <% if(isSaved){ %>
-                        <button class="btn btn-sm btn-warning">
-                          ⭐ Saved
+                    <% if(post.isSaved){ %>
+                      <button class="btn btn-sm btn-warning">
+                        ⭐ Saved
+                      </button>
+                      <% } else { %>
+                        <button class="btn btn-sm btn-outline-warning">
+                          ☆ Save
                         </button>
-                        <% } else { %>
-                          <button class="btn btn-sm btn-outline-warning">
-                            ☆ Save
-                          </button>
-                          <% } %>
+                        <% } %>
 
                   </form>
 

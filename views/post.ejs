@@ -63,45 +63,58 @@
               Posted By
             </h6>
 
-            <p class="mb-3">
-              <%= post.user.fullname %>
-            </p>
+            <div class="d-flex align-items-center gap-3 mb-3">
 
-            <p class="text-muted">
-              @<%= post.user.username %>
-            </p>
+              <a href="/user/<%= post.user._id %>">
+                <img src="<%= post.user.dp ? post.user.dp : 'https://via.placeholder.com/50' %>"
+                  class="rounded-circle border" width="50" height="50" style="object-fit: cover;">
+              </a>
+
+              <div>
+                <a href="/user/<%= post.user._id %>" class="text-decoration-none text-dark">
+                  <div class="fw-bold">
+                    <%= post.user.fullname %>
+                  </div>
+                </a>
+
+                <a href="/user/<%= post.user._id %>" class="text-decoration-none text-dark">
+                  <div class="text-muted">
+                    @<%= post.user.username %>
+                  </div>
+                </a>
+              </div>
+
+            </div>
 
             <hr>
 
-           <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
 
-  <form action="/like/<%= post._id %>" method="POST">
+              <form action="/like/<%= post._id %>" method="POST">
 
-    <button type="submit"
-      class="btn <%= liked ? 'btn-danger' : 'btn-outline-danger' %>">
+                <button type="submit" class="btn <%= liked ? 'btn-danger' : 'btn-outline-danger' %>">
 
-      <%= liked ? "❤️ Liked" : "🤍 Like" %>
+                  <%= liked ? "❤️ Liked" : "🤍 Like" %>
 
-    </button>
+                </button>
 
-  </form>
+              </form>
 
-  <form action="/save/<%= post._id %>" method="POST">
+              <form action="/save/<%= post._id %>" method="POST">
 
-    <button type="submit"
-      class="btn <%= saved ? 'btn-warning' : 'btn-outline-secondary' %>">
+                <button type="submit" class="btn <%= saved ? 'btn-warning' : 'btn-outline-secondary' %>">
 
-      <%= saved ? '⭐ Saved' : '☆  Save' %>
+                  <%= saved ? '⭐ Saved' : '☆  Save' %>
 
-    </button>
+                </button>
 
-  </form>
+              </form>
 
-</div>
+            </div>
 
-<p class="text-muted mt-2 mb-0">
-  ❤️ <%= likeCount %> likes
-</p>
+            <p class="text-muted mt-2 mb-0">
+              ❤️ <%= likeCount %> likes
+            </p>
 
           </div>
 

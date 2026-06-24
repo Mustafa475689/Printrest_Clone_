@@ -180,33 +180,29 @@ router.get("/login", function (req, res) {
 
 // Create posts route //
 router.post("/createpost", isLoggedIn, upload.single("image"), async function (req, res) {
-
   try {
-
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
-
     if (!req.file) {
-      return res.status(400).send("No file uploaded");
+      return res.status(400).send("File missing!");
     }
 
+    // Yahan filename ki jagah path use karein
     const post = await postModel.create({
-      image: req.file.path,
-      title: req.body.title,
-      description: req.body.description,
-      user: req.user._id
+      user: req.user._id,
+      image: req.file.path, // Cloudinary ka URL yahan ayega
+      title: req.body.title || "No Title",
+        description: req.body.description || ""
     });
 
+    req.user.posts.push(post._id);
+    await req.user.save();
+
     res.redirect("/profile");
-
   } catch (err) {
-
-    console.error("ERROR:", err);
-
-    res.status(500).send(err.message);
+    console.error("--- MERA ERROR ---", err);
+    res.status(500).send("Database Error: " + err.message);
   }
 });
-//
+//  
 
 // Create Post route for user Like the post  //
 router.post("/like/:postId", isLoggedIn, async (req, res) => {
@@ -233,8 +229,9 @@ router.post("/like/:postId", isLoggedIn, async (req, res) => {
 });
 //.....
 
+
 // * Delete Post route *//
-router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
+/*router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
   try {
     const postId = req.params.id;
 
@@ -253,8 +250,9 @@ router.post("/deletepost/:id", isLoggedIn, async function (req, res) {
     req.flash("error", err.message);
     res.redirect("/profile");
   }
-});
+}); */
 //.. 
+
 
 // * Save the post route *//
 router.post("/save/:postId", isLoggedIn, async (req, res) => {
@@ -284,15 +282,17 @@ router.post("/save/:postId", isLoggedIn, async (req, res) => {
 // * Upload Profile Photo route *//
 router.post("/upload-dp", isLoggedIn, upload.single("dp"), async function (req, res) {
   try {
-
+    // 1. Check karein file aayi ya nahi
     if (!req.file) {
       req.flash("error", "Please select an image for DP");
       return res.redirect("/profile");
     }
 
+    // 2. Cloudinary ka URL save karein
     const user = await userModel.findById(req.user._id);
-
-    user.dp = req.file.filename;
+    
+    // filename ki jagah path use karein
+    user.dp = req.file.path; 
 
     await user.save();
 
@@ -300,6 +300,7 @@ router.post("/upload-dp", isLoggedIn, upload.single("dp"), async function (req, 
     res.redirect("/profile");
 
   } catch (err) {
+    console.error("DP UPLOAD ERROR:", err);
     req.flash("error", err.message);
     res.redirect("/profile");
   }
@@ -315,7 +316,7 @@ function isLoggedIn(req, res, next) {
   res.redirect("/");
 }
 
-/* Profile */
+/* Profile route */
 router.get("/profile", isLoggedIn, async function (req, res) {
 
   let user = await userModel
@@ -334,11 +335,22 @@ router.get("/profile", isLoggedIn, async function (req, res) {
         savedPosts: post._id
       });
 
-      return {
-        ...post.toObject(),
-        likeCount,
-        saveCount
-      };
+     const liked = await likeModel.findOne({
+  post: post._id,
+  user: req.user._id
+});
+
+const isSaved = user.savedPosts.some(
+  savedPost => savedPost._id.toString() === post._id.toString()
+);
+
+return {
+  ...post.toObject(),
+  likeCount,
+  saveCount,
+  liked: !!liked,
+  isSaved
+};
     })
   );
 
@@ -361,6 +373,11 @@ router.get("/saved-posts", isLoggedIn, async function(req, res) {
 
 });
 
+/* GET route for Create Post */
+router.get("/createpost", isLoggedIn, function (req, res) {
+  res.render("createpost"); 
+});
+//.....
 /* Search Route */
 router.get("/search", async function (req, res) {
 
@@ -439,19 +456,58 @@ router.get("/post/:id", async function (req, res) {
 });
 //...
 
-// * Get Route for  open User profile who posted the image : * //
-router.get("/user/:id", isLoggedIn, async function (req, res) {
+// * Get User Routes * //
+router.get("/user/:id",  async function (req, res) {
 
-  const user = await userModel
-    .findById(req.params.id)
-    .populate("posts");
+const profileUser = await userModel
+  .findById(req.params.id)
+  .populate("posts");
+/*
+const currentUser = await userModel.findById(req.user._id); */
+let currentUser = null;
 
-  if (!user) return res.send("User not found");
+if (req.isAuthenticated && req.isAuthenticated()) {
+  currentUser = await userModel.findById(req.user._id);
+}
 
-  res.render("profile", { user });
+const postsWithStats = await Promise.all(
+  profileUser.posts.map(async (post) => {
 
+    const likeCount = await likeModel.countDocuments({
+      post: post._id
+    });
+
+    const saveCount = await userModel.countDocuments({
+      savedPosts: post._id
+    });
+
+const liked = currentUser
+  ? await likeModel.findOne({
+      user: currentUser._id,
+      post: post._id
+    })
+  : null;
+
+    return {
+      ...post.toObject(),
+      likeCount,
+      saveCount,
+      liked: !!liked
+    };
+  })
+);
+
+const profileUserObj = profileUser.toObject();
+profileUserObj.posts = postsWithStats;
+
+
+res.render("userprofile", {
+  profileUser: profileUserObj,
+  currentUser
 });
-//....
 
+
+}); 
+// ...
 
 module.exports = router;
